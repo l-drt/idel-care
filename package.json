@@ -1,0 +1,23 @@
+{
+  "name": "idel-care",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Application SaaS de suivi patient pour infirmiers libéraux - HDS + RGPD",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "api:dev": "npm run start:dev -w apps/api",
+    "api:build": "npm run build -w apps/api",
+    "mobile:start": "npm run start -w apps/mobile",
+    "expo:start": "npm run start -w apps/mobile",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "author": "Selamat Consult",
+  "license": "UNLICENSED"
+}

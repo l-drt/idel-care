@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "IDEL Care",
+    "slug": "idel-care",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.idelcare.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Pour prendre des photos de soins",
+        "NSPhotoLibraryUsageDescription": "Pour joindre des documents",
+        "NSLocationWhenInUseUsageDescription": "Pour optimiser vos tournées"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.idelcare.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "scheme": "idel-care",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

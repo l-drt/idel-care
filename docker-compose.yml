@@ -1,0 +1,34 @@
+# Environnement de développement local - IDEL Care
+# PostgreSQL + Redis (MinIO optionnel en Phase 2)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: idel-care-db
+    environment:
+      POSTGRES_USER: idel
+      POSTGRES_PASSWORD: idel_dev
+      POSTGRES_DB: idel_care
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U idel -d idel_care"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: idel-care-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:

@@ -1,0 +1,29 @@
+# CI API - IDEL Care
+# À activer : lint, test, build
+name: CI API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run build

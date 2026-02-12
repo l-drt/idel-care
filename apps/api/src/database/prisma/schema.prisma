@@ -1,0 +1,267 @@
+// IDEL Care - Schéma Prisma (voir ARCHITECTURE.md)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  NURSE
+  PRESCRIBER
+  PROVIDER
+  ADMIN
+}
+
+enum CareType {
+  WOUND_CARE
+  INJECTION
+  BLOOD_TEST
+  MEDICATION
+  TOILETTE
+  OTHER
+}
+
+enum DocumentType {
+  PRESCRIPTION
+  MEDICAL_REPORT
+  LAB_RESULT
+  PHOTO
+  OTHER
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+model User {
+  id                String    @id @default(uuid())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  email             String    @unique
+  passwordHash      String
+  firstName         String
+  lastName          String
+  phone             String?
+  role              UserRole
+  totpSecret        String?
+  totpEnabled       Boolean   @default(false)
+  totpVerifiedAt    DateTime?
+  lastLoginAt       DateTime?
+  lastLoginIp       String?
+  isActive          Boolean   @default(true)
+  patientsAssigned  PatientAssignment[]
+  vitalsRecorded    VitalSign[]
+  careActivities    CareActivity[]
+  transmissions     Transmission[]
+  messagesSent      Message[]
+  tours             Tour[]
+  documentsUploaded Document[]
+  auditLogs         AuditLog[]
+  refreshTokens     RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Patient {
+  id               String    @id @default(uuid())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  firstName        String
+  lastName         String
+  birthDate        DateTime
+  ssn              String?
+  phone            String?
+  email            String?
+  address          String
+  city             String
+  postalCode       String
+  latitude         Float?
+  longitude        Float?
+  medicalHistory   Json?
+  allergies        String[]
+  currentTreatments Json?
+  consentGiven     Boolean   @default(false)
+  consentDate      DateTime?
+  deletedAt        DateTime?
+  assignments      PatientAssignment[]
+  vitalSigns       VitalSign[]
+  careActivities   CareActivity[]
+  transmissions    Transmission[]
+  documents        Document[]
+  tourStops        TourStop[]
+
+  @@map("patients")
+}
+
+model PatientAssignment {
+  id          String   @id @default(uuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  nurseId     String
+  nurse       User     @relation(fields: [nurseId], references: [id])
+  assignedAt  DateTime @default(now())
+  isActive    Boolean  @default(true)
+
+  @@unique([patientId, nurseId])
+  @@map("patient_assignments")
+}
+
+model VitalSign {
+  id                      String   @id @default(uuid())
+  patientId               String
+  patient                 Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  recordedById            String
+  recordedBy              User     @relation(fields: [recordedById], references: [id])
+  recordedAt              DateTime @default(now())
+  bloodPressureSystolic   Int?
+  bloodPressureDiastolic  Int?
+  heartRate               Int?
+  temperature             Float?
+  spo2                    Int?
+  glucose                 Float?
+  weight                  Float?
+  isAbnormal              Boolean  @default(false)
+  alertMessage            String?
+
+  @@index([patientId, recordedAt])
+  @@map("vital_signs")
+}
+
+model CareActivity {
+  id          String      @id @default(uuid())
+  patientId   String
+  patient     Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  nurseId     String
+  nurse       User        @relation(fields: [nurseId], references: [id])
+  scheduledAt DateTime
+  completedAt DateTime?
+  careType    CareType
+  checklist   Json?
+  notes       String?
+  signature   String
+
+  @@index([nurseId, scheduledAt])
+  @@index([patientId, scheduledAt])
+  @@map("care_activities")
+}
+
+model Transmission {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  content   String
+  isUrgent  Boolean  @default(false)
+  signature Json
+
+  @@index([patientId, createdAt])
+  @@map("transmissions")
+}
+
+model Conversation {
+  id             String    @id @default(uuid())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  participantIds String[]
+  lastMessageAt  DateTime?
+  messages       Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String        @id @default(uuid())
+  senderId       String
+  sender         User          @relation(fields: [senderId], references: [id])
+  conversationId String
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  content        String
+  status         MessageStatus @default(SENT)
+  createdAt      DateTime      @default(now())
+  readAt         DateTime?
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model Tour {
+  id                        String     @id @default(uuid())
+  nurseId                   String
+  nurse                     User       @relation(fields: [nurseId], references: [id])
+  date                      DateTime   @db.Date
+  totalDistanceKm            Float?
+  estimatedDurationMinutes  Int?
+  createdAt                 DateTime   @default(now())
+  updatedAt                 DateTime   @updatedAt
+  stops                     TourStop[]
+
+  @@unique([nurseId, date])
+  @@map("tours")
+}
+
+model TourStop {
+  id              String   @id @default(uuid())
+  tourId          String
+  tour            Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  patientId       String
+  patient         Patient  @relation(fields: [patientId], references: [id])
+  visitOrder      Int
+  estimatedTime   String?
+  durationMinutes Int?
+
+  @@unique([tourId, visitOrder])
+  @@map("tour_stops")
+}
+
+model Document {
+  id             String       @id @default(uuid())
+  patientId      String
+  patient        Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  uploadedById   String
+  uploadedBy     User         @relation(fields: [uploadedById], references: [id])
+  uploadedAt     DateTime     @default(now())
+  documentType   DocumentType
+  fileName       String
+  filePath       String
+  fileSizeBytes  BigInt
+  mimeType       String
+  encryptionKeyId String?
+
+  @@index([patientId, uploadedAt])
+  @@map("documents")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action       String
+  resourceType String
+  resourceId   String?
+  ipAddress    String?
+  userAgent    String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([resourceType, resourceId])
+  @@map("audit_logs")
+}
