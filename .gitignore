@@ -44,8 +44,5 @@ apps/mobile/dist/
 *.key
 *.mobileprovision
 
-# EAS
-apps/mobile/eas.json
-
 # Misc
 *.local
