@@ -13,23 +13,29 @@ npm run expo:start
 
 ### Option B — App dev sur iPhone (sans Expo Go)
 
-**Une seule fois :** construire et installer l’app dev sur ton iPhone.
+**Une seule fois :** construire et installer l’app dev sur l’iPhone.
 
 ```bash
 cd d:\DEV\SelamatConsult\idel-care\apps\mobile
 npm run build:dev:ios
 ```
 
-(EAS te demandera de te connecter à Expo si besoin. À la fin, tu récupères un lien pour installer l’app sur l’iPhone.)
+(EAS te guide : connexion Expo, Apple, certificats. À la fin, un lien permet d’installer l’app sur l’iPhone.)
 
-**À chaque fois :** lancer le bundler, puis ouvrir l’app « IDEL Care » sur l’iPhone (même WiFi que le PC).
+**À chaque fois :** lancer l’API + le bundler, puis ouvrir l’app « IDEL Care » sur l’iPhone (même WiFi que le PC).
 
 ```bash
+# Terminal 1
+cd d:\DEV\SelamatConsult\idel-care
+docker compose up -d
+npm run api:dev
+
+# Terminal 2
 cd d:\DEV\SelamatConsult\idel-care\apps\mobile
 npm run start:dev
 ```
 
-L’app dev sur l’iPhone se connecte au bundler ; plus besoin d’Expo Go.
+Ouvre l’app **IDEL Care** sur l’iPhone : elle se connecte au bundler. Plus besoin d’Expo Go.
 
 ---
 
