@@ -44,6 +44,7 @@ Ouvre l’app **IDEL Care** sur l’iPhone : elle se connecte au bundler. Plus b
 | Question | Réponse |
 |----------|--------|
 | La base est créée par qui ? | Docker crée la base vide. Prisma (migrate) crée les tables dedans. |
-| Comment je sais si les tables existent ? | Tu lances `npx prisma studio` dans `apps\api` : si les tables s’affichent, c’est bon. |
+| Comment je sais si les tables existent ? | Tu lances `npm run prisma:studio` dans `apps/api` : si les tables s’affichent, c’est bon. |
+| Où voir les users, l’audit, la base ? | Prisma Studio (`apps/api` → `npm run prisma:studio`) ou connexion PostgreSQL avec `DATABASE_URL`. Voir [docs/ACCES-BASE-ET-AUDIT.md](docs/ACCES-BASE-ET-AUDIT.md). |
 | Je refais la migration à chaque fois ? | Non. Une seule fois (ou quand on te dit de la refaire après un changement de schéma). |
 | L’API ne démarre pas, erreur DATABASE_URL ? | Vérifie que `apps\api\.env` existe et contient la ligne `DATABASE_URL=...`. |

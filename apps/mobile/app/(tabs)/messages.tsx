@@ -1,24 +1,29 @@
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors } from '@/theme';
 
 export default function MessagesScreen() {
   return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
     <View style={styles.container}>
       <Text variant="headlineMedium">Messages</Text>
       <Text variant="bodyMedium" style={styles.subtitle}>
         Messagerie — à implémenter
       </Text>
     </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.background },
   container: {
     flex: 1,
     padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'transparent',
   },
   subtitle: {
     marginTop: 10,

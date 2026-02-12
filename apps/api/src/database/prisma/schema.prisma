@@ -38,6 +38,12 @@ enum MessageStatus {
   READ
 }
 
+enum TwoFactorMethod {
+  TOTP
+  SMS
+  EMAIL
+}
+
 model User {
   id                String    @id @default(uuid())
   createdAt         DateTime  @default(now())
@@ -51,9 +57,11 @@ model User {
   totpSecret        String?
   totpEnabled       Boolean   @default(false)
   totpVerifiedAt    DateTime?
+  twoFactorMethod   TwoFactorMethod @default(TOTP)
   lastLoginAt       DateTime?
   lastLoginIp       String?
   isActive          Boolean   @default(true)
+  oneTimeCodes      OneTimeCode[]
   patientsAssigned  PatientAssignment[]
   vitalsRecorded    VitalSign[]
   careActivities    CareActivity[]
@@ -76,6 +84,18 @@ model RefreshToken {
   createdAt   DateTime @default(now())
 
   @@map("refresh_tokens")
+}
+
+model OneTimeCode {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId, expiresAt])
+  @@map("one_time_codes")
 }
 
 model Patient {
