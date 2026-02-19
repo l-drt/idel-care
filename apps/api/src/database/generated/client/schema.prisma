@@ -46,22 +46,22 @@ enum TwoFactorMethod {
 }
 
 model User {
-  id                String    @id @default(uuid())
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  email             String    @unique
+  id                String              @id @default(uuid())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  email             String              @unique
   passwordHash      String
   firstName         String
   lastName          String
   phone             String?
   role              UserRole
   totpSecret        String?
-  totpEnabled       Boolean   @default(false)
+  totpEnabled       Boolean             @default(false)
   totpVerifiedAt    DateTime?
-  twoFactorMethod   TwoFactorMethod @default(TOTP)
+  twoFactorMethod   TwoFactorMethod     @default(TOTP)
   lastLoginAt       DateTime?
   lastLoginIp       String?
-  isActive          Boolean   @default(true)
+  isActive          Boolean             @default(true)
   oneTimeCodes      OneTimeCode[]
   patientsAssigned  PatientAssignment[]
   vitalsRecorded    VitalSign[]
@@ -77,12 +77,12 @@ model User {
 }
 
 model RefreshToken {
-  id          String   @id @default(uuid())
-  token       String   @unique
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
   @@map("refresh_tokens")
 }
@@ -100,76 +100,76 @@ model OneTimeCode {
 }
 
 model Patient {
-  id               String    @id @default(uuid())
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  firstName        String
-  lastName         String
-  birthDate        DateTime
-  ssn              String?
-  phone            String?
-  email            String?
-  address          String
-  city             String
-  postalCode       String
-  latitude         Float?
-  longitude        Float?
-  medicalHistory   Json?
-  allergies        String[]
+  id                String              @id @default(uuid())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  firstName         String
+  lastName          String
+  birthDate         DateTime
+  ssn               String?
+  phone             String?
+  email             String?
+  address           String
+  city              String
+  postalCode        String
+  latitude          Float?
+  longitude         Float?
+  medicalHistory    Json?
+  allergies         String[]
   currentTreatments Json?
-  consentGiven     Boolean   @default(false)
-  consentDate      DateTime?
-  deletedAt        DateTime?
-  assignments      PatientAssignment[]
-  vitalSigns       VitalSign[]
-  careActivities   CareActivity[]
-  transmissions    Transmission[]
-  documents        Document[]
-  tourStops        TourStop[]
+  consentGiven      Boolean             @default(false)
+  consentDate       DateTime?
+  deletedAt         DateTime?
+  assignments       PatientAssignment[]
+  vitalSigns        VitalSign[]
+  careActivities    CareActivity[]
+  transmissions     Transmission[]
+  documents         Document[]
+  tourStops         TourStop[]
 
   @@map("patients")
 }
 
 model PatientAssignment {
-  id          String   @id @default(uuid())
-  patientId   String
-  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  nurseId     String
-  nurse       User     @relation(fields: [nurseId], references: [id])
-  assignedAt  DateTime @default(now())
-  isActive    Boolean  @default(true)
+  id         String   @id @default(uuid())
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  nurseId    String
+  nurse      User     @relation(fields: [nurseId], references: [id])
+  assignedAt DateTime @default(now())
+  isActive   Boolean  @default(true)
 
   @@unique([patientId, nurseId])
   @@map("patient_assignments")
 }
 
 model VitalSign {
-  id                      String   @id @default(uuid())
-  patientId               String
-  patient                 Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  recordedById            String
-  recordedBy              User     @relation(fields: [recordedById], references: [id])
-  recordedAt              DateTime @default(now())
-  bloodPressureSystolic   Int?
-  bloodPressureDiastolic  Int?
-  heartRate               Int?
-  temperature             Float?
-  spo2                    Int?
-  glucose                 Float?
-  weight                  Float?
-  isAbnormal              Boolean  @default(false)
-  alertMessage            String?
+  id                     String   @id @default(uuid())
+  patientId              String
+  patient                Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  recordedById           String
+  recordedBy             User     @relation(fields: [recordedById], references: [id])
+  recordedAt             DateTime @default(now())
+  bloodPressureSystolic  Int?
+  bloodPressureDiastolic Int?
+  heartRate              Int?
+  temperature            Float?
+  spo2                   Int?
+  glucose                Float?
+  weight                 Float?
+  isAbnormal             Boolean  @default(false)
+  alertMessage           String?
 
   @@index([patientId, recordedAt])
   @@map("vital_signs")
 }
 
 model CareActivity {
-  id          String      @id @default(uuid())
+  id          String    @id @default(uuid())
   patientId   String
-  patient     Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient     Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
   nurseId     String
-  nurse       User        @relation(fields: [nurseId], references: [id])
+  nurse       User      @relation(fields: [nurseId], references: [id])
   scheduledAt DateTime
   completedAt DateTime?
   careType    CareType
@@ -224,26 +224,26 @@ model Message {
 }
 
 model Tour {
-  id                        String     @id @default(uuid())
-  nurseId                   String
-  nurse                     User       @relation(fields: [nurseId], references: [id])
-  date                      DateTime   @db.Date
-  totalDistanceKm            Float?
-  estimatedDurationMinutes  Int?
-  createdAt                 DateTime   @default(now())
-  updatedAt                 DateTime   @updatedAt
-  stops                     TourStop[]
+  id                       String     @id @default(uuid())
+  nurseId                  String
+  nurse                    User       @relation(fields: [nurseId], references: [id])
+  date                     DateTime   @db.Date
+  totalDistanceKm          Float?
+  estimatedDurationMinutes Int?
+  createdAt                DateTime   @default(now())
+  updatedAt                DateTime   @updatedAt
+  stops                    TourStop[]
 
   @@unique([nurseId, date])
   @@map("tours")
 }
 
 model TourStop {
-  id              String   @id @default(uuid())
+  id              String  @id @default(uuid())
   tourId          String
-  tour            Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  tour            Tour    @relation(fields: [tourId], references: [id], onDelete: Cascade)
   patientId       String
-  patient         Patient  @relation(fields: [patientId], references: [id])
+  patient         Patient @relation(fields: [patientId], references: [id])
   visitOrder      Int
   estimatedTime   String?
   durationMinutes Int?
@@ -253,17 +253,17 @@ model TourStop {
 }
 
 model Document {
-  id             String       @id @default(uuid())
-  patientId      String
-  patient        Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  uploadedById   String
-  uploadedBy     User         @relation(fields: [uploadedById], references: [id])
-  uploadedAt     DateTime     @default(now())
-  documentType   DocumentType
-  fileName       String
-  filePath       String
-  fileSizeBytes  BigInt
-  mimeType       String
+  id              String       @id @default(uuid())
+  patientId       String
+  patient         Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  uploadedById    String
+  uploadedBy      User         @relation(fields: [uploadedById], references: [id])
+  uploadedAt      DateTime     @default(now())
+  documentType    DocumentType
+  fileName        String
+  filePath        String
+  fileSizeBytes   BigInt
+  mimeType        String
   encryptionKeyId String?
 
   @@index([patientId, uploadedAt])

@@ -47,8 +47,8 @@ async function bootstrap() {
     .addTag('documents', 'Documents médicaux')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  const document = SwaggerModule.createDocument(app as any, config);
+  SwaggerModule.setup('api/docs', app as any, document);
 
   const port = process.env.PORT || 3000;
   await app.listen(port);

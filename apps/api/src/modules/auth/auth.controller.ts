@@ -12,6 +12,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Throttle({ default: { limit: 20, ttl: 900_000 } }) // 20 inscriptions / 15 min (limite plus souple que le login)
   @ApiOperation({ summary: 'Inscription (ouverte)' })
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);

@@ -57,18 +57,35 @@ async function request<T>(
     ...(rest.headers as Record<string, string>),
   };
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...rest,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...rest,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (e) {
+    if (e instanceof TypeError && (e.message === 'Network request failed' || e.message.includes('fetch'))) {
+      throw new Error(
+        'Impossible de joindre l’API. Vérifiez que l’API tourne (npm run api:dev) et que sur téléphone vous avez créé apps/mobile/.env avec EXPO_PUBLIC_API_URL=http://VOTRE_IP:3000/api (IP de votre ordinateur sur le WiFi).'
+      );
+    }
+    throw e;
+  }
 
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    const message =
-      (data as { message?: string }).message ??
-      (typeof data === 'string' ? data : 'Erreur réseau');
+    const raw = (data as { message?: string | string[] }).message;
+    const message = Array.isArray(raw)
+      ? raw.join(' ')
+      : typeof raw === 'string'
+        ? raw
+        : typeof data === 'string'
+          ? data
+          : res.status === 429
+            ? 'Trop de tentatives. Réessayez dans quelques minutes.'
+            : 'Erreur réseau';
     throw new Error(message);
   }
 
@@ -169,7 +186,52 @@ export const api = {
       body: { password },
     });
   },
+
+  async createPatient(accessToken: string, payload: CreatePatientPayload): Promise<PatientResponse> {
+    return request<PatientResponse>('/patients', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: payload,
+    });
+  },
+
+  async getPatients(accessToken: string): Promise<PatientResponse[]> {
+    return request<PatientResponse[]>('/patients', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  },
 };
+
+export interface CreatePatientPayload {
+  firstName: string;
+  lastName: string;
+  birthDate: string;
+  ssn?: string;
+  phone?: string;
+  email?: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  latitude?: number;
+  longitude?: number;
+  medicalHistory?: object;
+  allergies?: string[];
+  currentTreatments?: object;
+  consentGiven: boolean;
+  consentDate?: string;
+}
+
+export interface PatientResponse {
+  id: string;
+  firstName: string;
+  lastName: string;
+  birthDate: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  [key: string]: unknown;
+}
 
 export interface ExportMyDataResponse {
   exportedAt: string;

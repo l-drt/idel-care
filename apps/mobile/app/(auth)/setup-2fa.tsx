@@ -25,9 +25,13 @@ export default function Setup2FAScreen() {
   const { pending2FA, isAuthenticated, enable2FA } = useAuthStore();
 
   useEffect(() => {
-    if (pending2FA?.userId && (pending2FA.secret || pending2FA.qrCode)) return; // Écran valide
-    if (isAuthenticated) return; // Activation 2FA venant de réussir, handleSubmit va naviguer vers (tabs)
-    if (!pending2FA?.userId) {
+    if (!pending2FA) {
+      if (!isAuthenticated) router.replace('/(auth)/login');
+      return;
+    }
+    if (pending2FA.userId && (pending2FA.secret || pending2FA.qrCode)) return; // Écran valide
+    if (isAuthenticated) return;
+    if (!pending2FA.userId) {
       router.replace('/(auth)/login');
       return;
     }
@@ -60,6 +64,7 @@ export default function Setup2FAScreen() {
   };
 
   if (!pending2FA?.userId && !isAuthenticated) return null;
+  if (!pending2FA) return null;
 
   const hasSecret = !!pending2FA.secret;
 
@@ -111,7 +116,7 @@ export default function Setup2FAScreen() {
             </Text>
           )}
 
-          {pending2FA.qrCode && (
+          {pending2FA?.qrCode && (
             <View style={styles.qrSection}>
               <Text variant="labelSmall" style={styles.qrLabel}>
                 Ou scannez ce QR (autre appareil)

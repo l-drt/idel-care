@@ -5,7 +5,7 @@ import { PrismaService } from '../../database/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../database/generated/client';
 import { randomInt } from 'crypto';
 import { AuditService } from '../audit/audit.service';
 import { RegisterDto, LoginDto, Verify2FADto, Enable2FADto } from './dto';
