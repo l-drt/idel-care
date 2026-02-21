@@ -275,6 +275,8 @@ export interface PatientResponse {
   address: string;
   city: string;
   postalCode: string;
+  latitude?: number | null;
+  longitude?: number | null;
   phone?: string | null;
   email?: string | null;
   ssn?: string | null;

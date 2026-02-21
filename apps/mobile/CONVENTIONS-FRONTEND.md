@@ -26,6 +26,17 @@
 
 ---
 
+## Couleurs et thème (un seul fichier)
+
+**Fichier unique :** `theme.ts` (à la racine de `apps/mobile/`).
+
+- **`theme`** : objet passé au `PaperProvider` (couleurs Material Design 3, `roundness`, etc.). Modifier `theme.colors` pour changer les couleurs de base (primary, surface, background, etc.) pour tout Paper.
+- **`colors`** : palette utilisée dans les écrans et composants via `import { colors } from '@/theme'` (bordures, textes, erreurs, etc.).
+
+Pour modifier les **couleurs de base** de l’app (primaire, fond, texte, bordures) : éditer **uniquement** `theme.ts`. Tous les écrans et composants qui utilisent `colors` ou le thème Paper héritent du changement. Ne pas dupliquer les couleurs en dur dans les composants.
+
+---
+
 ## Clavier et formulaires
 
 **Règle :** Sur tout écran avec des champs de saisie (avant ou après connexion), le contenu doit être dans un **`KeyboardAwareScrollView`** (`@/components`) pour que les champs ne passent pas sous le clavier.

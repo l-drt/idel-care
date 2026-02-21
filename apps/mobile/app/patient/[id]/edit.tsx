@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
-import { Button, Input, KeyboardAwareScrollView } from '@/components';
+import { AddressSearchInput, Button, Input, KeyboardAwareScrollView } from '@/components';
 import { api } from '@/services/api';
 import { colors } from '@/theme';
 
@@ -43,6 +43,8 @@ export default function PatientEditScreen() {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [consentChecked, setConsentChecked] = useState(true);
@@ -65,6 +67,8 @@ export default function PatientEditScreen() {
       setAddress(p.address ?? '');
       setCity(p.city ?? '');
       setPostalCode(p.postalCode ?? '');
+      setLatitude(p.latitude ?? null);
+      setLongitude(p.longitude ?? null);
       setPhone(p.phone ?? '');
       setEmail(p.email ?? '');
       setConsentChecked(p.consentGiven ?? true);
@@ -113,6 +117,8 @@ export default function PatientEditScreen() {
         address: address.trim(),
         city: city.trim(),
         postalCode: postalCode.trim(),
+        latitude: latitude ?? undefined,
+        longitude: longitude ?? undefined,
         phone: phone.trim() || undefined,
         email: email.trim() || undefined,
         consentGiven: consentChecked,
@@ -187,6 +193,18 @@ export default function PatientEditScreen() {
           placeholder="JJ/MM/AAAA"
           keyboardType="numeric"
           maxLength={10}
+        />
+
+        <AddressSearchInput
+          label="Rechercher une adresse"
+          placeholder="Tapez une adresse, ville ou code postal..."
+          onSelect={(s) => {
+            setAddress(s.address);
+            setCity(s.city);
+            setPostalCode(s.postalCode);
+            setLatitude(s.latitude ?? null);
+            setLongitude(s.longitude ?? null);
+          }}
         />
         <Input label="Adresse *" value={address} onChangeText={setAddress} placeholder="Numéro et rue" />
         <Input label="Ville *" value={city} onChangeText={setCity} placeholder="Ville" />

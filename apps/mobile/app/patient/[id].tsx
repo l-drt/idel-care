@@ -93,7 +93,7 @@ export default function PatientDetailScreen() {
             setDeleting(true);
             try {
               await api.deletePatient(token, id);
-              router.replace('/(tabs)/patients');
+              router.back();
             } catch (e) {
               Alert.alert('Erreur', e instanceof Error ? e.message : 'Impossible de supprimer.');
             } finally {
