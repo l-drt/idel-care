@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   RefreshControl,
   Platform,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +20,7 @@ import type { PatientResponse } from '@/services/api';
 import { colors } from '@/theme';
 
 const TOKEN_KEY = 'accessToken';
+const REFRESH_KEY = 'refreshToken';
 
 function formatBirthDate(iso: string): string {
   const [y, m, d] = iso.split('T')[0].split('-');
@@ -32,9 +35,7 @@ function PatientCard({ patient }: { patient: PatientResponse }) {
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.7}
-      onPress={() => {
-        // TODO: navigation vers détail patient
-      }}
+      onPress={() => router.push(`/patient/${patient.id}`)}
     >
       <View style={styles.cardIconWrap}>
         <MaterialCommunityIcons
@@ -71,9 +72,26 @@ export default function PatientsScreen() {
   const [patients, setPatients] = useState<PatientResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadPatients = useCallback(async () => {
-    const token = await SecureStore.getItemAsync(TOKEN_KEY);
+  const loadPatients = useCallback(async (tryRefreshFirst = false) => {
+    setLoadError(null);
+    let token = await SecureStore.getItemAsync(TOKEN_KEY);
+
+    if (tryRefreshFirst) {
+      const refreshToken = await SecureStore.getItemAsync(REFRESH_KEY);
+      if (refreshToken) {
+        try {
+          const data = await api.refresh(refreshToken);
+          await SecureStore.setItemAsync(TOKEN_KEY, data.accessToken);
+          await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
+          token = data.accessToken;
+        } catch {
+          // Garde l’ancien token, on tente quand même le chargement
+        }
+      }
+    }
+
     if (!token) {
       setPatients([]);
       setLoading(false);
@@ -82,8 +100,25 @@ export default function PatientsScreen() {
     try {
       const list = await api.getPatients(token);
       setPatients(list ?? []);
-    } catch {
+    } catch (e) {
+      if (!tryRefreshFirst) {
+        const refreshToken = await SecureStore.getItemAsync(REFRESH_KEY);
+        if (refreshToken) {
+          try {
+            const data = await api.refresh(refreshToken);
+            await SecureStore.setItemAsync(TOKEN_KEY, data.accessToken);
+            await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
+            const list = await api.getPatients(data.accessToken);
+            setPatients(list ?? []);
+            setLoadError(null);
+            return;
+          } catch {
+            // Refresh échoué, on affiche l’erreur
+          }
+        }
+      }
       setPatients([]);
+      setLoadError(e instanceof Error ? e.message : 'Impossible de charger la liste.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -97,9 +132,23 @@ export default function PatientsScreen() {
     }, [loadPatients])
   );
 
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active') loadPatients(true);
+    });
+    return () => sub.remove();
+  }, [loadPatients]);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadPatients();
+    setLoadError(null);
+    loadPatients(true);
+  }, [loadPatients]);
+
+  const onRetry = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
+    loadPatients(true);
   }, [loadPatients]);
 
   return (
@@ -139,17 +188,40 @@ export default function PatientsScreen() {
         >
           {patients.length === 0 ? (
             <View style={styles.emptyWrap}>
-              <MaterialCommunityIcons
-                name="account-group-outline"
-                size={64}
-                color={colors.textMuted}
-              />
-              <Text variant="bodyLarge" style={styles.emptyTitle}>
-                Aucun patient
-              </Text>
-              <Text variant="bodyMedium" style={styles.emptySubtitle}>
-                Ajoutez un patient avec le bouton ci‑dessus.
-              </Text>
+              {loadError ? (
+                <>
+                  <MaterialCommunityIcons
+                    name="alert-circle-outline"
+                    size={64}
+                    color={colors.textMuted}
+                  />
+                  <Text variant="bodyLarge" style={styles.emptyTitle}>
+                    {loadError}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={onRetry}
+                  >
+                    <Text variant="labelLarge" style={styles.retryButtonText}>
+                      Réessayer
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <MaterialCommunityIcons
+                    name="account-group-outline"
+                    size={64}
+                    color={colors.textMuted}
+                  />
+                  <Text variant="bodyLarge" style={styles.emptyTitle}>
+                    Aucun patient
+                  </Text>
+                  <Text variant="bodyMedium" style={styles.emptySubtitle}>
+                    Ajoutez un patient avec le bouton ci‑dessus.
+                  </Text>
+                </>
+              )}
             </View>
           ) : (
             patients.map((p) => <PatientCard key={p.id} patient={p} />)
@@ -211,6 +283,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: colors.textMuted,
     textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: '#fff',
   },
   card: {
     flexDirection: 'row',

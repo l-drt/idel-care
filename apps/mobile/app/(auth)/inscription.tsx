@@ -1,16 +1,9 @@
 import { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  Platform,
-  KeyboardAvoidingView,
-  Alert,
-} from 'react-native';
+import { View, StyleSheet, Platform, Alert } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Button, Input } from '@/components';
+import { Button, Input, KeyboardAwareScrollView } from '@/components';
 import { api } from '@/services/api';
 import { colors } from '@/theme';
 
@@ -63,16 +56,10 @@ export default function InscriptionScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.keyboard}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.scrollContent}
         keyboardVerticalOffset={20}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           <View style={styles.card}>
             <Text variant="headlineMedium" style={styles.title}>
               Inscription
@@ -201,8 +188,7 @@ export default function InscriptionScreen() {
               Déjà un compte ? Connexion
             </Button>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -211,9 +197,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  keyboard: {
-    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,

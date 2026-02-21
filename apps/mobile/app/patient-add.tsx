@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
-import { Button, Input } from '@/components';
+import { Button, Input, KeyboardAwareScrollView } from '@/components';
 import { api } from '@/services/api';
 import { colors } from '@/theme';
 
@@ -36,6 +36,7 @@ export default function PatientAddScreen() {
   const [postalCode, setPostalCode] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [consentChecked, setConsentChecked] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
@@ -50,6 +51,10 @@ export default function PatientAddScreen() {
     }
     if (!address.trim() || !city.trim() || !postalCode.trim()) {
       Alert.alert('Erreur', 'L\'adresse, la ville et le code postal sont obligatoires.');
+      return;
+    }
+    if (!consentChecked) {
+      Alert.alert('Consentement requis', 'Vous devez attester que le patient a donné son consentement pour le traitement de ses données.');
       return;
     }
     const token = await SecureStore.getItemAsync(TOKEN_KEY);
@@ -69,7 +74,8 @@ export default function PatientAddScreen() {
         postalCode: postalCode.trim(),
         phone: phone.trim() || undefined,
         email: email.trim() || undefined,
-        consentGiven: true,
+        consentGiven: consentChecked,
+        consentDate: new Date().toISOString().split('T')[0],
       });
       Alert.alert('Succès', 'Patient ajouté.', [
         { text: 'OK', onPress: () => router.back() },
@@ -89,10 +95,9 @@ export default function PatientAddScreen() {
           <Text variant="bodyLarge" style={styles.backLabel}>Annuler</Text>
         </TouchableOpacity>
       </View>
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+        keyboardVerticalOffset={0}
       >
         <Text variant="headlineMedium" style={styles.title}>
           Nouveau patient
@@ -158,15 +163,30 @@ export default function PatientAddScreen() {
           autoCapitalize="none"
         />
 
+        <TouchableOpacity
+          style={styles.consentRow}
+          onPress={() => setConsentChecked((v) => !v)}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons
+            name={consentChecked ? 'checkbox-marked' : 'checkbox-blank-outline'}
+            size={24}
+            color={consentChecked ? colors.primary : colors.textMuted}
+          />
+          <Text variant="bodyMedium" style={styles.consentLabel}>
+            Le patient a donné son consentement pour le traitement de ses données dans l'application. *
+          </Text>
+        </TouchableOpacity>
+
         <Button
           onPress={handleSubmit}
           loading={loading}
-          disabled={loading}
+          disabled={loading || !consentChecked}
           style={styles.submitButton}
         >
           Enregistrer le patient
         </Button>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -199,6 +219,17 @@ const styles = StyleSheet.create({
   subtitle: {
     color: colors.textMuted,
     marginBottom: 24,
+  },
+  consentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  consentLabel: {
+    flex: 1,
+    color: colors.text,
   },
   submitButton: {
     marginTop: 24,

@@ -201,6 +201,32 @@ export const api = {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
   },
+
+  async getPatient(accessToken: string, patientId: string): Promise<PatientResponse> {
+    return request<PatientResponse>(`/patients/${patientId}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  },
+
+  async updatePatient(
+    accessToken: string,
+    patientId: string,
+    payload: UpdatePatientPayload,
+  ): Promise<PatientResponse> {
+    return request<PatientResponse>(`/patients/${patientId}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: payload,
+    });
+  },
+
+  async deletePatient(accessToken: string, patientId: string): Promise<void> {
+    return request<void>(`/patients/${patientId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  },
 };
 
 export interface CreatePatientPayload {
@@ -222,6 +248,25 @@ export interface CreatePatientPayload {
   consentDate?: string;
 }
 
+export interface UpdatePatientPayload {
+  firstName?: string;
+  lastName?: string;
+  birthDate?: string;
+  ssn?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
+  medicalHistory?: object;
+  allergies?: string[];
+  currentTreatments?: object;
+  consentGiven?: boolean;
+  consentDate?: string;
+}
+
 export interface PatientResponse {
   id: string;
   firstName: string;
@@ -230,6 +275,14 @@ export interface PatientResponse {
   address: string;
   city: string;
   postalCode: string;
+  phone?: string | null;
+  email?: string | null;
+  ssn?: string | null;
+  allergies?: string[];
+  medicalHistory?: object | null;
+  currentTreatments?: object | null;
+  consentGiven?: boolean | null;
+  consentDate?: string | null;
   [key: string]: unknown;
 }
 

@@ -1,18 +1,21 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsDateString, IsOptional, IsBoolean, IsArray, IsNumber, ValidateIf } from 'class-validator';
 
-export class CreatePatientDto {
-  @ApiProperty({ example: 'Marie' })
+export class UpdatePatientDto {
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  firstName: string;
+  firstName?: string;
 
-  @ApiProperty({ example: 'Dupont' })
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  lastName: string;
+  lastName?: string;
 
-  @ApiProperty({ example: '1985-03-15' })
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsDateString()
-  birthDate: string;
+  birthDate?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -29,17 +32,20 @@ export class CreatePatientDto {
   @IsString()
   email?: string;
 
-  @ApiProperty({ example: '12 rue de la Santé' })
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  address: string;
+  address?: string;
 
-  @ApiProperty({ example: 'Paris' })
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  city: string;
+  city?: string;
 
-  @ApiProperty({ example: '75014' })
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  postalCode: string;
+  postalCode?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -55,7 +61,7 @@ export class CreatePatientDto {
   @IsOptional()
   medicalHistory?: object;
 
-  @ApiPropertyOptional({ example: [] })
+  @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
@@ -65,13 +71,14 @@ export class CreatePatientDto {
   @IsOptional()
   currentTreatments?: object;
 
-  @ApiProperty({ example: true })
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsBoolean()
-  consentGiven: boolean;
+  consentGiven?: boolean;
 
-  /** Obligatoire RGPD lorsque consentGiven est true. */
-  @ApiPropertyOptional({ example: '2025-02-18' })
+  @ApiPropertyOptional()
   @ValidateIf((o) => o.consentGiven === true)
+  @IsOptional()
   @IsDateString()
   consentDate?: string;
 }

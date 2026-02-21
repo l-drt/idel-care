@@ -26,4 +26,14 @@
 
 ---
 
+## Clavier et formulaires
+
+**Règle :** Sur tout écran avec des champs de saisie (avant ou après connexion), le contenu doit être dans un **`KeyboardAwareScrollView`** (`@/components`) pour que les champs ne passent pas sous le clavier.
+
+- **Utilisation :** remplacer `<ScrollView>` par `<KeyboardAwareScrollView>` avec les mêmes props (`contentContainerStyle`, etc.). Optionnel : `keyboardVerticalOffset={20}` si l'écran a un bandeau/header fixe au-dessus du scroll.
+- **Écrans concernés :** login, inscription, verify-2fa, setup-2fa, unlock, patient-add, change-password, supprimer-compte, etc.
+- **Comportement :** identique partout (évitement du clavier + scroll si besoin).
+
+---
+
 **Résumé :** un seul composant par type d’UI → un seul fichier à modifier pour changer le design partout.

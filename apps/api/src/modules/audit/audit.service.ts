@@ -49,6 +49,9 @@ export class AuditService {
         userAgent: true,
         createdAt: true,
         metadata: true,
+        user: {
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
       },
     });
   }

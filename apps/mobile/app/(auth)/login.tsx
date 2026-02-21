@@ -1,16 +1,9 @@
 import { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { View, StyleSheet, Alert, Platform } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Button, Input } from '@/components';
+import { Button, Input, KeyboardAwareScrollView } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
 
@@ -46,16 +39,10 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.keyboard}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.scrollContent}
         keyboardVerticalOffset={20}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           <View style={styles.card}>
             <Text variant="headlineMedium" style={styles.title}>
               IDEL Care
@@ -91,15 +78,13 @@ export default function LoginScreen() {
               Pas encore de compte ?
             </Button>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  keyboard: { flex: 1 },
   scrollContent: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingVertical: 40 },
   card: {
     backgroundColor: colors.surface,

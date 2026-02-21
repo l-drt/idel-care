@@ -16,6 +16,8 @@ export default function RootLayout() {
         <Stack.Screen name="donnees-collectees" options={{ headerShown: false }} />
         <Stack.Screen name="supprimer-compte" options={{ headerShown: false }} />
         <Stack.Screen name="patient-add" options={{ headerShown: false }} />
+        <Stack.Screen name="patient/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="patient/[id]/edit" options={{ headerShown: false }} />
       </Stack>
     </PaperProvider>
   );

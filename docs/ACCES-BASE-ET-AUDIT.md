@@ -53,6 +53,8 @@ curl -H "Authorization: Bearer VOTRE_ACCESS_TOKEN" "http://localhost:3000/api/au
 
 Pour avoir un utilisateur ADMIN en dev : modifier en base le champ `role` d’un user de `NURSE` à `ADMIN` (via Prisma Studio ou SQL), puis te connecter avec ce compte pour récupérer un token et appeler `GET /api/audit`.
 
+Chaque entrée de log contient notamment : `action` (ex. `PATIENT_SOFT_DELETE`), `resourceType`, `resourceId` (id du patient), `userId`, **`user`** (`{ id, email, firstName, lastName }` — qui a fait l’action), `createdAt`, `ipAddress`, `userAgent`. Pour savoir **qui a supprimé un patient** : chercher une entrée avec `action: "PATIENT_SOFT_DELETE"` et le `resourceId` du patient ; le champ **`user`** donne l’email et le nom de la personne.
+
 ---
 
 ## Récapitulatif

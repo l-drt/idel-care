@@ -1,10 +1,12 @@
-# Statut HDS et fondations — Avant le développement des fonctionnalités métier
+# Statut HDS et fondations — Conformité et reste à faire
 
-Ce document fait le point sur ce qui est **prêt** et ce qui **reste à faire** côté HDS, gestion des comptes/utilisateurs et des données, **avant** de développer les fonctionnalités opérationnelles (patients, soins, tournées, etc.).
+Ce document fait le point sur ce qui est **prêt** (conforme HDS/RGPD) et ce qui **reste à faire**, pour avoir une trace claire de l’avancement.
+
+**Dernière mise à jour :** 2025-02-18 — Mise en conformité patients (filtrage deletedAt, audit, consentement obligatoire, soft delete), mise à jour de ce fichier.
 
 ---
 
-## ✅ Ce qui est bon (prêt pour la suite)
+## ✅ Ce qui est bon (prêt / conforme)
 
 ### Authentification et comptes (HDS)
 
@@ -33,6 +35,7 @@ Ce document fait le point sur ce qui est **prêt** et ce qui **reste à faire** 
 |--------|--------|
 | Modèle `AuditLog` + AuditService | ✅ |
 | Événements auth loggés (LOGIN_*, LOGOUT, ACCOUNT_DELETED) avec IP / userAgent | ✅ |
+| **Événements patients** : PATIENT_CREATE, PATIENT_LIST, PATIENT_VIEW, PATIENT_SOFT_DELETE (IP / userAgent) | ✅ |
 | GET /api/audit (réservé ADMIN) | ✅ |
 
 ### Données (code)
@@ -43,6 +46,22 @@ Ce document fait le point sur ce qui est **prêt** et ce qui **reste à faire** 
 | Codes 2FA loggés uniquement si `NODE_ENV !== 'production'` | ✅ |
 | Modèle Patient avec `consentGiven`, `consentDate`, `deletedAt` | ✅ (champs en base) |
 
+### Patients : API et accès
+
+| Élément | Statut |
+|--------|--------|
+| CRUD patients (API) | ✅ POST /patients, GET /patients, GET /patients/:id |
+| Filtrage `deletedAt` | ✅ Liste et détail n’affichent pas les patients avec `deletedAt` renseigné. |
+| Audit sur les accès patients | ✅ PATIENT_CREATE, PATIENT_LIST, PATIENT_VIEW, PATIENT_SOFT_DELETE. |
+| Accès = infirmier assigné | ✅ Toutes les routes patient vérifient `PatientAssignment` (nurseId = user connecté). |
+
+### RGPD patients
+
+| Élément | Statut |
+|--------|--------|
+| Consentement obligatoire | ✅ API : `consentGiven` + `consentDate` requis si `consentGiven` (validation DTO). App : envoi de la date à la création. |
+| Droit à l’oubli patient | ✅ Soft delete : DELETE /patients/:id met `deletedAt` ; liste et détail excluent ces patients. Pas d’anonymisation automatique pour l’instant (traçabilité conservée). |
+
 ### Infra / déploiement (documentation)
 
 | Élément | Statut |
@@ -52,83 +71,68 @@ Ce document fait le point sur ce qui est **prêt** et ce qui **reste à faire** 
 
 ---
 
-## ⚠️ À faire avant ou en tout début de dev métier
+## ⚠️ Reste à faire
 
-Ces points concernent la **base** (HDS, RGPD, contrôle d’accès) et sont à traiter **avant** ou **dès le début** du développement des fonctionnalités (CRUD patients, soins, constantes, etc.).
-
-### 1. Patients : API et accès
+### RGPD patients (optionnel / plus tard)
 
 | À faire | Détail |
 |---------|--------|
-| **CRUD patients (API)** | Le module `patients` est vide (pas de controller/service). À ajouter : création, lecture, mise à jour, liste (filtrée par infirmier connecté via `PatientAssignment`). |
-| **Filtrage `deletedAt`** | Dans toute requête patient : exclure les patients avec `deletedAt` non null (soft delete). |
-| **Audit sur les accès patients** | À chaque action sensible (consultation dossier, création/édition patient, etc.) appeler `AuditService.log()` (ex. `PATIENT_VIEW`, `PATIENT_CREATE`, `PATIENT_UPDATE`). |
+| **Portabilité patient** | Endpoint d’export des données **d’un patient** (JSON/PDF) pour remise au patient ou à l’infirmier. À prévoir quand le flux métier est clair. |
+| **Anonymisation** | Optionnel : lors du soft delete ou après délai, anonymiser nom/prénom/contact pour renforcer le droit à l’oubli tout en gardant la traçabilité. |
 
-### 2. RGPD patients
-
-| À faire | Détail |
-|---------|--------|
-| **Consentement obligatoire** | À la création/édition patient : exiger `consentGiven` + `consentDate` (validation API + écrans). Voir annexe « Consentement patient » en fin de document. |
-| **Droit à l’oubli patient** | Logique de soft delete : mettre `deletedAt`, et/ou anonymiser les champs identifiants (nom, prénom, contact). Ne pas supprimer en dur pour garder la traçabilité. |
-| **Portabilité patient** | Endpoint d’export des données **d’un patient** (JSON/PDF) pour la personne concernée ou l’infirmier (ex. pour remise au patient). À prévoir quand le flux métier est clair. |
-
-### 3. Contrôle d’accès (recommandé dès le début)
+### Contrôle d’accès (plus tard)
 
 | À faire | Détail |
 |---------|--------|
-| **Accès patient = infirmier assigné** | Pour chaque route patient (GET/PUT/DELETE, etc.) : vérifier que l’utilisateur connecté est bien l’infirmier assigné (PatientAssignment) pour ce patient. Sinon 403. |
-| **Guards par rôle (optionnel maintenant)** | Si vous ouvrez des écrans réservés à certains rôles plus tard, réutiliser ou étendre le `RolesGuard` existant. |
+| **Partage (médecin / patient)** | Décrit dans ACCESS-CONTROL.md ; à développer après CRUD + audit (déjà en place). |
+| **Guards par rôle** | Réutiliser/étendre `RolesGuard` si écrans réservés à certains rôles. |
 
-Le partage (infirmier → médecin / prestataire / patient) est décrit dans `ACCESS-CONTROL.md` mais peut être développé **après** que le CRUD patient et l’audit soient en place.
-
-### 4. Logs en production
+### Logs et production
 
 | À faire | Détail |
 |---------|--------|
-| **Vérifier l’env** | En prod : `NODE_ENV=production` pour ne jamais logger les codes 2FA. Déjà prévu dans le code, à confirmer au déploiement. |
+| **En prod** | `NODE_ENV=production` pour ne jamais logger les codes 2FA. À confirmer au déploiement. |
+| **Conservation des logs d’audit** | Politique 3 ans (purge/archivage ou hébergeur). Voir DEPLOIEMENT.md. |
+
+### Au moment du déploiement (pas dans le code)
+
+| À faire | Détail |
+|---------|--------|
+| **TLS** | Tout en HTTPS (reverse proxy, certificat). |
+| **Hébergement HDS** | PostgreSQL (et éventuellement Redis, stockage fichiers) chez un hébergeur certifié. |
+| **Sauvegardes / PRA** | Automatiques, testées, documentées. |
+| **Variables d’environnement** | JWT_SECRET fort, DATABASE_URL prod, envoi réel 2FA (SMS/email), pas de valeurs par défaut sensibles. |
+
+### Par feature (soins, constantes, tournées, documents)
+
+- Appeler `AuditService.log()` sur les actions sensibles (création, modification, consultation).
+- **Documents** : stockage sécurisé (Object Storage HDS, chiffrement) comme indiqué dans HDS-OBLIGATOIRE-VS-OPTIONNEL.md.
 
 ---
 
-## 🔜 À faire pendant le dev métier (par feature)
+## Résumé : prêt pour le dev métier ?
 
-- **Constantes / soins / tournées / documents** : pour chaque module qui touche aux données de santé, appeler `AuditService.log()` sur les actions sensibles (création, modification, consultation).
-- **Documents** : quand le module sera implémenté, stockage sécurisé (Object Storage HDS, chiffrement) comme indiqué dans HDS-OBLIGATOIRE-VS-OPTIONNEL.md.
-
----
-
-## 🚀 Au moment du déploiement (pas dans le code actuel)
-
-- **TLS** : tout en HTTPS (reverse proxy, certificat).
-- **Hébergement HDS** : PostgreSQL (et éventuellement Redis, stockage fichiers) chez un hébergeur certifié.
-- **Sauvegardes** : automatiques, testées.
-- **PRA** : documenté et testé.
-- **Variables d’environnement** : JWT_SECRET fort, DATABASE_URL prod, envoi réel des codes 2FA (SMS/email) en prod, pas de valeurs par défaut sensibles.
-- **Conservation des logs d’audit** : politique 3 ans (purge/archivage ou hébergeur).
-
----
-
-## Résumé : bon pour démarrer le dev métier ?
-
-| Domaine | Prêt ? | Action recommandée |
-|---------|--------|--------------------|
-| **Auth / comptes / 2FA** | ✅ Oui | Aucune. |
-| **RGPD utilisateur (export, suppression compte)** | ✅ Oui | Aucune. |
-| **Audit (auth)** | ✅ Oui | Étendre l’audit aux actions patients dès que le CRUD patient existe. |
+| Domaine | Prêt ? | Note |
+|---------|--------|------|
+| **Auth / comptes / 2FA** | ✅ Oui | — |
+| **RGPD utilisateur (export, suppression compte)** | ✅ Oui | — |
+| **Audit (auth + patients)** | ✅ Oui | PATIENT_* loggés. |
 | **Données (logs, modèles)** | ✅ Oui | Vérifier NODE_ENV en prod. |
-| **Patients (API + accès)** | ❌ Non | Implémenter le CRUD patients, filtrage `deletedAt`, contrôle d’accès (assignation), audit sur chaque action. |
-| **RGPD patients (consentement, droit à l’oubli)** | ❌ Partiel | Imposer consentement à la création/édition ; brancher soft delete / anonymisation. |
-| **Partage (médecin / patient)** | ❌ Non | Après CRUD + audit ; voir ACCESS-CONTROL.md. |
+| **Patients (API + accès + soft delete)** | ✅ Oui | Liste, détail, création, soft delete ; filtrage deletedAt ; audit. |
+| **RGPD patients (consentement, droit à l’oubli)** | ✅ Oui | Consentement obligatoire (consentDate si consentGiven) ; soft delete en place. |
+| **Portabilité patient** | ❌ Non | Export JSON/PDF à prévoir. |
+| **Partage (médecin / patient)** | ❌ Non | Voir ACCESS-CONTROL.md. |
+| **Infrastructure (TLS, HDS, backups, PRA)** | ❌ Non | Au déploiement. |
 
 ---
 
-## Annexe : comment fonctionne le consentement patient ?
+## Annexe : consentement patient
 
-Le patient **ne se connecte pas** à l'app : c'est l'**infirmier** qui crée la fiche patient. Le consentement ne se fait donc pas par le patient dans l'app, mais comme suit :
+Le patient **ne se connecte pas** à l’app : c’est l’**infirmier** qui crée la fiche. Le consentement est enregistré comme suit :
 
-- **Dans la réalité** : l'infirmier obtient l'accord du patient (oral, signature sur un formulaire papier, etc.) pour traiter ses données dans l'application.
-- **Dans l'app** : l'infirmier **atteste** que le patient a donné son accord en cochant une case (ex. « Le patient a donné son consentement pour le traitement de ses données ») et en enregistrant la **date** du consentement (`consentGiven` + `consentDate`). L'API et les écrans doivent exiger ces champs pour être conformes RGPD : on ne sauvegarde pas de fiche patient sans trace de consentement.
-- En résumé : ce n'est **pas** le patient qui clique « J'accepte » dans l'app ; c'est l'infirmier qui **enregistre** le fait que le patient a consenti (à un moment donné, en dehors de l'app ou lors d'un échange).
+- **En réalité** : l’infirmier obtient l’accord du patient (oral, formulaire papier, etc.) pour traiter ses données.
+- **Dans l’app** : l’infirmier **atteste** du consentement (case + date `consentGiven` / `consentDate`). L’API exige ces champs (validation DTO) ; l’app envoie la date à la création.
 
 ---
 
-En une phrase : **l’auth, les comptes, l’export/suppression de compte et l’audit auth sont conformes HDS et prêts.** Pour que la base soit complète avant le reste du développement, il reste à **ajouter le CRUD patients avec contrôle d’accès, audit sur les actions patients, et la gestion du consentement + soft delete**. Une fois cela en place, vous pouvez enchaîner sereinement sur les fonctionnalités opérationnelles (soins, constantes, tournées, etc.) en continuant à logger les actions sensibles dans l’audit.
+En une phrase : **l’auth, les comptes, l’audit (auth + patients), le CRUD patients avec contrôle d’accès, le consentement obligatoire et le soft delete sont en place et conformes HDS/RGPD.** Il reste la portabilité patient (export), le partage de dossiers si besoin, et la mise en œuvre infra au déploiement.

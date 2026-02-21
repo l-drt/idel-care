@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -8,7 +8,7 @@ import {
   isEnrolledAsync,
   authenticateAsync,
 } from '@/utils/safe-local-auth';
-import { Button, Input } from '@/components';
+import { Button, Input, KeyboardAwareScrollView } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 import { api } from '@/services/api';
 import { colors } from '@/theme';
@@ -93,16 +93,10 @@ export default function UnlockScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.keyboard}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.scrollContent}
         keyboardVerticalOffset={20}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           <View style={styles.centered}>
             <Text variant="headlineMedium" style={styles.title}>
               Déverrouiller l'app
@@ -177,15 +171,13 @@ export default function UnlockScreen() {
               Se déconnecter
             </Button>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  keyboard: { flex: 1 },
   scrollContent: { flexGrow: 1, justifyContent: 'center', padding: 24, minHeight: 400 },
   centered: { alignItems: 'center' },
   title: { fontWeight: '700', color: colors.primary, marginBottom: 8, textAlign: 'center' },

@@ -1,18 +1,10 @@
 import { useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  Platform,
-  Image,
-  Alert,
-  TouchableOpacity,
-} from 'react-native';
+import { View, StyleSheet, Platform, Image, Alert, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import { setStringAsync as copyToClipboard, isClipboardAvailable } from '@/utils/safe-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Button, Input } from '@/components';
+import { Button, Input, KeyboardAwareScrollView } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 import { colors } from '@/theme';
 
@@ -70,11 +62,7 @@ export default function Setup2FAScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardAwareScrollView contentContainerStyle={styles.scrollContent} keyboardVerticalOffset={20}>
         <View style={styles.card}>
           <Text variant="headlineMedium" style={styles.title}>
             Activer la 2FA
@@ -154,7 +142,7 @@ export default function Setup2FAScreen() {
             Retour à la connexion
           </Button>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

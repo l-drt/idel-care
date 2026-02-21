@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { Button, Input } from '@/components';
+import { Button, Input, KeyboardAwareScrollView } from '@/components';
 import { useAuthStore } from '@/stores/authStore';
 import { api } from '@/services/api';
 import { colors } from '@/theme';
@@ -50,11 +50,7 @@ export default function SupprimerCompteScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardAwareScrollView contentContainerStyle={styles.scrollContent} keyboardVerticalOffset={20}>
         <Text variant="headlineMedium" style={styles.title}>
           Supprimer mon compte
         </Text>
@@ -92,7 +88,7 @@ export default function SupprimerCompteScreen() {
         <Button variant="text" onPress={() => router.back()} compact>
           Annuler
         </Button>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
